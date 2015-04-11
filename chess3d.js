@@ -57,7 +57,7 @@ function ChessBoard (scene) {
 		this.move(position, position); //hacky
 	}
 
-	this.move = function (from, to) {
+	this.move = function (from, to, dontResetMove) {
 		// lookup piece
 		var piece = positions[from.x][from.y];
 
@@ -65,17 +65,50 @@ function ChessBoard (scene) {
 			return;
 		}
 
+		// en passant : special case. calculated first before move state is reset
+		function enPassant (position) {
+			var candidate = positions[position];
+			if (candidate && candidate.name === "pawn" && candidate.movedLast) {
+				if ((position.y > to.y && candidate.color === WHITE) ||
+						(position.y < to.y && candidate.color === BLACK)) {
+					this.remove(position);
+				}
+			}
+		}
+
+		enPassant({ to.x, to.y + 1 });
+		enPassant({ to.x, to.y - 1 });
+
+		if (!dontResetMove) {
+			_.each(pieces, function (piece) { piece.movedLast = false; });
+		}
+
+		// castling : special case
+		if (piece.name === "king" && Math.abs(from.x - to.x) >= 2) {
+			// infer rook and position from direction
+			if (from.x > to.x) {
+				this.move({ x : 0, y : to.y }, { x : 3, y : to.y }, true);
+			}
+			else {
+				this.move({ x : 7, y : to.y }, { x : 5, y : to.y }, true);
+			}
+		}
+
 		if (positions[to.x][to.y] && positions[to.x][to.y] !== piece) {
 			if (this.onTaken) {
 				this.onTaken();
 			}
-			this.remove(positions[to.x][to.y]);
+			this.remove(to);
 		}
+		delete positions[from.x][from.y];
 		positions[to.x][to.y] = piece;
 		piece.targetPosition = this.transformPosition(to);
+		piece.movedLast = true;
 	};
 
-	this.remove = function (piece) {
+	this.remove = function (position) {
+		var piece = positions[position.x][position.y];
+		delete positions[position.x][position.y];
 		// TODO: place on the side of board
 		scene.remove(piece.object);
 	};
@@ -99,7 +132,12 @@ function ChessPiece (board, name, object) {
 		get : function () { return object; }
 	});
 
+	Object.defineProperty(this, "name", {
+		get : function () { return name; }
+	});
+
 	this.targetPosition = new THREE.Vector3();
+	this.movedLast = false;
 
 	this.update = function () {
 		if (object.position.distanceTo(this.targetPosition) < 0.00001) {
