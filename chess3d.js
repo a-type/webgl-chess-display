@@ -1,3 +1,36 @@
+function Clouds (scene, numParticles, fieldSpan) {
+	var defaultColor = 0x0a0a0a;
+
+	var particles = new THREE.Geometry();
+	var texture = THREE.ImageUtils.loadTexture("textures/cloud.jpg");
+	var material = new THREE.PointCloudMaterial({
+		color: defaultColor, size: 10, map : texture, blending : THREE.AdditiveBlending, transparent : true, sizeAttenuation : true
+	});
+
+	material.depthWrite = false;
+
+	for (var p = 0; p < numParticles; p++) {
+		var x = Math.random() * fieldSpan - (fieldSpan / 2);
+		var z = Math.random() * fieldSpan - (fieldSpan / 2);
+		var y = Math.random() * 2 - 4;
+		var particle = new THREE.Vector3(x, y, z);
+		particles.vertices.push(particle);
+	}
+
+	var particleSystem = new THREE.PointCloud(particles, material);
+	particleSystem.sortParticles = true;
+	scene.add(particleSystem);
+
+	this.flash = function () {
+		material.color = new THREE.Color(0xffffff);
+		setTimeout(function () { material.color = new THREE.Color(0xf0f0f0); }, 150);
+	}
+
+	this.update = function () {
+		material.color.lerp(new THREE.Color(defaultColor), 0.03);
+	};
+}
+
 function ChessBoard (scene) {
 	var positions = [];
 	var pieces = [];
@@ -33,6 +66,9 @@ function ChessBoard (scene) {
 		}
 
 		if (positions[to.x][to.y] && positions[to.x][to.y] !== piece) {
+			if (this.onTaken) {
+				this.onTaken();
+			}
 			this.remove(positions[to.x][to.y]);
 		}
 		positions[to.x][to.y] = piece;
@@ -77,7 +113,12 @@ function Chess3D () {
 	var WHITE = 0xffffff;
 	var BLACK = 0x000000;
 
+	var blackMaterial = new THREE.MeshPhongMaterial({ color : BLACK, specular : 0x808080, shininess : 30 });
+	var whiteMaterial = new THREE.MeshPhongMaterial({ color : WHITE, specular : 0x080808, shininess : 5 });
+
 	var scene = new THREE.Scene();
+	scene.fog = new THREE.FogExp2(BLACK, 0.08);
+
 	var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 	camera.position.set(0, 5, 5);
 
@@ -88,16 +129,21 @@ function Chess3D () {
 	var ambient = new THREE.AmbientLight(0x808080);
 	scene.add(light);
 
+	var clouds = new Clouds(scene, 500, 30);
+
 	var renderer = new THREE.WebGLRenderer({ canvas : document.getElementById("viewport") });
 	renderer.setSize(window.innerWidth, window.innerHeight);
-	renderer.setClearColor(0x808080);
+	renderer.setClearColor(BLACK);
 
 	var controls = new THREE.OrbitControls(camera);
+	controls.noPan = true;
+	controls.enabled = false;
 	camera.lookAt(new THREE.Vector3(0, 0, 0));
 
 	var loader = new THREE.OBJLoader();
 	var pieces = Object.create(null);
 	var board = new ChessBoard(scene);
+	board.onTaken = clouds.flash.bind(clouds);
 
 	function loadPieces (done) {
 		function loadPiece (pieceName) {
@@ -119,9 +165,6 @@ function Chess3D () {
 		loadPiece("pawn");
 		loadPiece("knight");
 	}
-
-	var blackMaterial = new THREE.MeshPhongMaterial({ color : BLACK, specular : 0x808080, shininess : 30 });
-	var whiteMaterial = new THREE.MeshPhongMaterial({ color : WHITE, specular : 0x080808, shininess : 5 });
 
 	function createPiece (pieceName, color, position) {
 		var material = color === WHITE ? whiteMaterial : blackMaterial;
@@ -171,10 +214,12 @@ function Chess3D () {
 
 		controls.update(8);
 		board.update();
+		clouds.update();
 		renderer.render(scene, camera);
 	};
 
 	render();
 
+	this.enableControls = function () { controls.enabled = true };
 	this.move = board.move.bind(board);
 }
