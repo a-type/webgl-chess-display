@@ -45,6 +45,8 @@ function ChessBoard (scene) {
 		var material = new THREE.MeshPhongMaterial({ color : 0xffffff, side: THREE.DoubleSide, map : texture });
 		var plane = new THREE.Mesh(geometry, material);
 		plane.rotation.x = 3.14 / 2;
+		plane.castShadow = false;
+		plane.receiveShadow = true;
 		scene.add(plane);
 	}
 	createBoard();
@@ -66,7 +68,7 @@ function ChessBoard (scene) {
 		}
 
 		// en passant : special case. calculated first before move state is reset
-		function enPassant (position) {
+		var enPassant = function (position) {
 			var candidate = positions[position];
 			if (candidate && candidate.name === "pawn" && candidate.movedLast) {
 				if ((position.y > to.y && candidate.color === WHITE) ||
@@ -74,10 +76,10 @@ function ChessBoard (scene) {
 					this.remove(position);
 				}
 			}
-		}
+		};
 
-		enPassant({ to.x, to.y + 1 });
-		enPassant({ to.x, to.y - 1 });
+		enPassant({ x : to.x, y : to.y + 1 });
+		enPassant({ x : to.x, y : to.y - 1 });
 
 		if (!dontResetMove) {
 			_.each(pieces, function (piece) { piece.movedLast = false; });
@@ -160,8 +162,18 @@ function Chess3D () {
 	var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 	camera.position.set(0, 5, 5);
 
-	var light = new THREE.PointLight(0x808080, 2, 100);
+	var light = new THREE.SpotLight(0x808080, 2, 0, Math.PI / 2, 1);
 	light.position.set(0, 10, 0);
+	light.target.position.set(0, 0, 0);
+	light.castShadow = true;
+	light.shadowCameraNear = 1;
+	light.shadowCameraFar = 20;
+	light.shadowCameraFov = 50;
+	light.shadowBias = 0.0001;
+	light.shadowDarkness = 0.5;
+	light.shadowMapWidth = 1024;
+	light.shadowMapHeight = 1024;
+
 	scene.add(light);
 
 	var ambient = new THREE.AmbientLight(0x808080);
@@ -172,6 +184,8 @@ function Chess3D () {
 	var renderer = new THREE.WebGLRenderer({ canvas : document.getElementById("viewport") });
 	renderer.setSize(window.innerWidth, window.innerHeight);
 	renderer.setClearColor(BLACK);
+	renderer.shadowMapEnabled = true;
+	renderer.shadowMapType = THREE.PCFShadowMap;
 
 	var controls = new THREE.OrbitControls(camera);
 	controls.noPan = true;
@@ -210,6 +224,8 @@ function Chess3D () {
 		var object = new THREE.Mesh(pieces[pieceName].children[0].geometry, material);
 
 		object.scale.set(3, 3, 3);
+		object.castShadow = true;
+		object.receiveShadow = false;
 
 		if (color === BLACK) {
 			object.rotation.set(0, 3.14, 0);
