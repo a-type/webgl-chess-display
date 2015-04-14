@@ -13,6 +13,8 @@ function Clouds (scene, numParticles, fieldSpan) {
 
 	var particleSystem;
 
+	this.oscillate = true;
+
 	this.flash = function () {
 		material.color = new THREE.Color(WHITE);
 		setTimeout(function () { material.color = new THREE.Color(0xf0f0f0); }, 150);
@@ -20,6 +22,14 @@ function Clouds (scene, numParticles, fieldSpan) {
 
 	this.update = function () {
 		material.color.lerp(new THREE.Color(defaultColor), 0.03);
+		if (this.oscillate) {
+			_.each(particleSystem.geometry.vertices, function (vertex) {
+				var mills = new Date().getTime() / 1600;
+				var verticalOffset = (Math.sin(mills + vertex.randomOffset)) * 0.1;
+				vertex.y = vertex.naturalY + verticalOffset;
+			});
+			particleSystem.geometry.verticesNeedUpdate = true;
+		}
 	};
 
 	this.generate = function (num) {
@@ -34,6 +44,8 @@ function Clouds (scene, numParticles, fieldSpan) {
 			var z = Math.random() * fieldSpan - (fieldSpan / 2);
 			var y = Math.random() * 2 - 4;
 			var particle = new THREE.Vector3(x, y, z);
+			particle.randomOffset = Math.random() * Math.PI;
+			particle.naturalY = y;
 			particles.vertices.push(particle);
 		}
 
@@ -301,11 +313,13 @@ function Chess3D () {
 			renderer.shadowMapEnabled = true;
 			renderer.shadowMapAutoUpdate = true;
 			clouds.enable();
+			clouds.oscillate = true;
 			clouds.generate(500);
 		}
 		else if (quality === "med") {
 			disableShadows();
 			clouds.enable();
+			clouds.oscillate = false;
 			clouds.generate(250);
 		}
 		else {
