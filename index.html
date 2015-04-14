@@ -3,10 +3,12 @@
 	<title>3d Chess Display</title>
 	</head>
 
-	<body style="margin: 0">
+	<body style="margin: 0; font: arial">
 		<canvas id="viewport" style="margin: 0; width: 100%; height: 100%;"></canvas>
 
-		<form id="idForm" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);">
+		<form id="idForm" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); color: white; font: inherit">
+			quality: <input type="radio" name="quality" value="low"/>low<input type="radio" name="quality" value="med"/>med<input type="radio" name="quality" value="hi" checked/>high
+			<br/>
 			<input type="text" id="id" placeholder="game id"/>
 			<input type="submit" value="replay"/>
 		</form>
