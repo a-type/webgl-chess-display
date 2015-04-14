@@ -288,15 +288,6 @@ function Chess3D () {
 	var board;
 
 	var ready = false;
-	var active = true;
-
-	window.onfocus = function () {
-		active = true;
-	};
-
-	window.onblur = function () {
-		active = false;
-	};
 
 	$("form").change(function () {
 		function disableShadows () {
@@ -360,7 +351,6 @@ function Chess3D () {
 		requestAnimationFrame(render);
 
 		if (!ready) return;
-		if (!active) return;
 
 		controls.update(8);
 		board.update();
