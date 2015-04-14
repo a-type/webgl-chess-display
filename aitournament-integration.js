@@ -10,32 +10,15 @@ $(document).ready(function () {
 		ws.onclose = function(event){
 			console.log("wsclose:", event);
 		}
-		// ws.onopen = function(event){
-		// 	ws.send(JSON.stringify({
-		// 		type: 'auth',
-		// 		session: "BDA3A35733721003491F08B51DA455299E3B4656"
-		// 	}));
-		// };
 
 		ws.onmessage = function(event) {
 			var data = JSON.parse(event.data);
 			console.log("wsin: ",data);
-			queueMoves(data.game_data);
+			queueMoves(data.game_data || data.data);
 		};
 
-		function getCookie(cname) {
-			var name = cname + "=";
-			var ca = document.cookie.split(';');
-			for(var i=0; i<ca.length; i++) {
-			var c = ca[i];
-			while (c.charAt(0)==' ') c = c.substring(1);
-				if (c.indexOf(name) == 0) return c.substring(name.length,c.length);
-			}
-			return "";
-		}
-
 		function queueMoves (data) {
-			var moves = data.history;
+			var moves = data.history || [ data ];
 			_.each(moves, function (move) {
 				movesQueue.push(move);
 			});
