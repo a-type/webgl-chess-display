@@ -1,16 +1,34 @@
 <html>
 	<head>
 	<title>3d Chess Display</title>
+	<style>
+		 form {
+		 	position: absolute;
+		 	color: white;
+		 	font: inherit;
+		 }
+	</style>
 	</head>
 
 	<body style="margin: 0; font: arial">
 		<canvas id="viewport" style="margin: 0; width: 100%; height: 100%;"></canvas>
 
-		<form id="idForm" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); color: white; font: inherit">
-			quality: <input type="radio" name="quality" value="low"/>low<input type="radio" name="quality" value="med"/>med<input type="radio" name="quality" value="hi" checked/>high
-			<br/>
+		<form id="idForm" style="left: 50%; top: 50%; transform: translate(-50%, -50%);">
 			<input type="text" id="id" placeholder="game id"/>
 			<input type="submit" value="replay"/>
+		</form>
+
+		<form id="settingsForm" style="left: 0; top: 0; padding-left: 8px">
+			shadows: <input type="radio" name="shadows" value="no"/>no<input type="radio" name="shadows" value="yes" checked/>yes
+			<br/>
+			clouds: <input type="radio" name="quality" value="low"/>none<input type="radio" name="quality" value="med"/>simple<input type="radio" name="quality" value="hi" checked/>fancy
+		</form>
+
+		<form id="controlsForm" style="left: 50%; bottom: 0; transform: translate(-50%, 0);">
+			<input type="radio" name="speed" value="slow" checked/>slow
+			<input type="radio" name="speed" value="med"/>med
+			<input type="radio" name="speed" value="fast"/>fast
+			<input type="radio" name="speed" value="instant"/>instant
 		</form>
 		<!-- jquery -->
 		<script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>

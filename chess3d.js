@@ -301,30 +301,31 @@ function Chess3D () {
 
 	var ready = false;
 
-	$("form").change(function () {
-		function disableShadows () {
-			renderer.shadowMapEnabled = false;
-			renderer.shadowMapAutoUpdate = false;
-			renderer.clearTarget(light.shadowMap);
-		}
-
+	$("#settingsForm").change(function () {
 		var quality = $("input:radio[name='quality']:checked").val();
 		if (quality === "hi") {
-			renderer.shadowMapEnabled = true;
-			renderer.shadowMapAutoUpdate = true;
 			clouds.enable();
 			clouds.oscillate = true;
 			clouds.generate(500);
 		}
 		else if (quality === "med") {
-			disableShadows();
 			clouds.enable();
 			clouds.oscillate = false;
 			clouds.generate(250);
 		}
 		else {
-			disableShadows();
 			clouds.disable();
+		}
+
+		var shadows = $("input:radio[name='shadows']:checked").val();
+		if (shadows === "yes") {
+			renderer.shadowMapEnabled = true;
+			renderer.shadowMapAutoUpdate = true;
+		}
+		else {
+			renderer.shadowMapEnabled = false;
+			renderer.shadowMapAutoUpdate = false;
+			renderer.clearTarget(light.shadowMap);
 		}
 	});
 

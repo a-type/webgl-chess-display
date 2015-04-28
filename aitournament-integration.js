@@ -1,5 +1,6 @@
 $(document).ready(function () {
 	var id;
+	var moveInterval = 100;
 
 	function fetchMoves () {
 		var ws = new WebSocket("wss://aitournament.com/chess/game?id=" + id);
@@ -26,7 +27,6 @@ $(document).ready(function () {
 
 		var movesQueue = [];
 		var moveTimer = 0;
-		var moveInterval = 100;
 
 		function moveLoop () {
 			moveTimer++;
@@ -49,14 +49,40 @@ $(document).ready(function () {
 		moveLoop();
 	}
 
-	// get game id
-	$("#idForm").submit(function () {
-		id = $("#id").val();
+	function begin () {
 		$("#idForm").hide(300);
 		chess.enableControls();
 
 		fetchMoves();
+	}
+
+	// from hash if available
+	if (window.location.hash) {
+		id = window.location.hash.substring(1);
+		begin();
+	}
+
+	// get game id
+	$("#idForm").submit(function () {
+		id = $("#id").val();
+		begin();
 
 		return false;
+	});
+
+	$("#controlsForm").change(function () {
+		var speed = $("input:radio[name='speed']:checked").val();
+		if (speed === "slow") {
+			moveInterval = 100;
+		}
+		else if (speed === "med") {
+			moveInterval = 50;
+		}
+		else if (speed === "fast") {
+			moveInterval = 10;
+		}
+		else if (speed === "instant") {
+			moveInterval = 0;
+		}
 	});
 });
